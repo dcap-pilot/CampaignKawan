@@ -1613,6 +1613,21 @@ input[type="radio"]:checked + .gender-option[for="gender-female"] span {
 .loading-spinner p {
     font-size: 18px;
     font-weight: 600;
+    margin-bottom: 10px;
+}
+
+.loading-subtitle {
+    font-size: 16px !important;
+    font-weight: 400 !important;
+    color: var(--text-secondary) !important;
+    margin-bottom: 8px !important;
+}
+
+.loading-time {
+    font-size: 14px !important;
+    font-weight: 500 !important;
+    color: var(--text-muted) !important;
+    font-style: italic;
 }
 
 /* Success Modal */

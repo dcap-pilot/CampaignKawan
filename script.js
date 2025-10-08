@@ -239,6 +239,12 @@ class LoanApplicationForm {
         fileInputs.forEach(input => {
             input.addEventListener('change', (e) => this.handleFileUpload(e));
         });
+
+        // Setup clear button for income documents
+        const clearIncomeBtn = document.getElementById('clearIncomeDocuments');
+        if (clearIncomeBtn) {
+            clearIncomeBtn.addEventListener('click', () => this.clearIncomeDocuments());
+        }
     }
 
     handleFileUpload(event) {
@@ -249,14 +255,7 @@ class LoanApplicationForm {
         if (files && files.length > 0) {
             // Handle multiple files for income documents
             if (inputName === 'incomeDocuments') {
-                // Validate file count (max 10)
-                if (files.length > 10) {
-                    fileInfo.textContent = 'Maksimum 10 fail sahaja dibenarkan';
-                    fileInfo.style.color = '#e74c3c';
-                    return;
-                }
-
-                // Validate file types
+                // Validate file types first
                 const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'application/pdf'];
                 const invalidFiles = Array.from(files).filter(file => !validTypes.includes(file.type));
                 
@@ -266,9 +265,32 @@ class LoanApplicationForm {
                     return;
                 }
 
-                this.uploadedFiles[inputName] = Array.from(files);
-                fileInfo.textContent = `Dipilih: ${files.length} fail`;
+                // Initialize array if it doesn't exist
+                if (!this.uploadedFiles[inputName]) {
+                    this.uploadedFiles[inputName] = [];
+                }
+
+                // Add new files to existing ones
+                const newFiles = Array.from(files);
+                this.uploadedFiles[inputName] = [...this.uploadedFiles[inputName], ...newFiles];
+
+                // Validate total file count (max 10)
+                if (this.uploadedFiles[inputName].length > 10) {
+                    fileInfo.textContent = 'Maksimum 10 fail sahaja dibenarkan';
+                    fileInfo.style.color = '#e74c3c';
+                    // Remove excess files
+                    this.uploadedFiles[inputName] = this.uploadedFiles[inputName].slice(0, 10);
+                    return;
+                }
+
+                fileInfo.textContent = `Dipilih: ${this.uploadedFiles[inputName].length} fail`;
                 fileInfo.style.color = '#2D9394';
+                
+                // Show clear button if files are selected
+                const actionsDiv = document.getElementById('incomeDocumentsActions');
+                if (actionsDiv) {
+                    actionsDiv.style.display = 'block';
+                }
             } else {
                 // Handle single file for other inputs
                 const file = files[0];
@@ -277,8 +299,11 @@ class LoanApplicationForm {
                 fileInfo.style.color = '#2D9394';
             }
         } else {
-            delete this.uploadedFiles[inputName];
-            fileInfo.textContent = '';
+            // Only clear if it's not incomeDocuments (to preserve accumulated files)
+            if (inputName !== 'incomeDocuments') {
+                delete this.uploadedFiles[inputName];
+                fileInfo.textContent = '';
+            }
         }
     }
 
@@ -288,6 +313,29 @@ class LoanApplicationForm {
         const sizes = ['Bytes', 'KB', 'MB', 'GB'];
         const i = Math.floor(Math.log(bytes) / Math.log(k));
         return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+
+    clearIncomeDocuments() {
+        // Clear the uploaded files array
+        this.uploadedFiles['incomeDocuments'] = [];
+        
+        // Clear the file input
+        const fileInput = document.getElementById('incomeDocuments');
+        if (fileInput) {
+            fileInput.value = '';
+        }
+        
+        // Clear the file info display
+        const fileInfo = document.getElementById('incomeDocumentsInfo');
+        if (fileInfo) {
+            fileInfo.textContent = '';
+        }
+        
+        // Hide the actions div
+        const actionsDiv = document.getElementById('incomeDocumentsActions');
+        if (actionsDiv) {
+            actionsDiv.style.display = 'none';
+        }
     }
 
     validateField(field) {
@@ -549,6 +597,13 @@ class LoanApplicationForm {
 
     collectFormData() {
         const form = document.getElementById('loanForm');
+        console.log('Form element found:', form);
+        
+        if (!form) {
+            console.error('Form element not found!');
+            return {};
+        }
+        
         const formData = new FormData(form);
         
         // Convert FormData to object
@@ -556,6 +611,32 @@ class LoanApplicationForm {
         for (let [key, value] of formData.entries()) {
             data[key] = value;
         }
+        
+        console.log('=== COLLECTING FORM DATA ===');
+        console.log('Raw form data entries:', Array.from(formData.entries()));
+        console.log('Converted data object:', data);
+        
+        // Manual field collection as fallback
+        const fieldIds = ['referralCode', 'motorcycleModel', 'fullName', 'nric', 'phone', 'email', 'employmentType', 'address1', 'address2', 'postcode', 'city', 'state', 'monthlyIncome'];
+        const manualData = {};
+        
+        fieldIds.forEach(fieldId => {
+            const element = document.getElementById(fieldId);
+            console.log(`Field ${fieldId}:`, element, element?.value);
+            manualData[fieldId] = element?.value || '';
+        });
+        
+        console.log('Manual field collection:', manualData);
+        
+        // Use manual data if form data is missing values
+        Object.keys(manualData).forEach(key => {
+            if (!data[key] && manualData[key]) {
+                data[key] = manualData[key];
+                console.log(`Fixed ${key}: ${data[key]}`);
+            }
+        });
+        
+        console.log('Final data object:', data);
 
         // Handle phone numbers - add +6 prefix for phone fields
         const phoneFields = ['phone', 'employerPhone1', 'employerPhone2', 'ref1Phone', 'ref2Phone'];
@@ -597,6 +678,19 @@ class LoanApplicationForm {
 
     async submitForm(event) {
         event.preventDefault();
+        
+        console.log('=== FORM SUBMISSION STARTED ===');
+        console.log('Current step:', this.currentStep);
+        console.log('Employment type value:', document.getElementById('employmentType').value);
+        console.log('Full name value:', document.getElementById('fullName').value);
+        console.log('NRIC value:', document.getElementById('nric').value);
+        console.log('Motorcycle model value:', document.getElementById('motorcycleModel').value);
+        console.log('Address1 value:', document.getElementById('address1').value);
+        console.log('Address2 value:', document.getElementById('address2').value);
+        console.log('Postcode value:', document.getElementById('postcode').value);
+        console.log('City value:', document.getElementById('city').value);
+        console.log('State value:', document.getElementById('state').value);
+        console.log('Monthly income value:', document.getElementById('monthlyIncome').value);
 
         if (!this.validateCurrentStep()) {
             this.showNotification('Sila lengkapkan semua medan yang diperlukan', 'error');
@@ -1020,7 +1114,90 @@ class LoanApplicationForm {
 
     showLoading(show) {
         const loadingOverlay = document.getElementById('loadingOverlay');
-        loadingOverlay.style.display = show ? 'flex' : 'none';
+        const body = document.body;
+        
+        if (show) {
+            // Show loading overlay
+            loadingOverlay.style.display = 'flex';
+            
+            // Disable scrolling and prevent interaction
+            body.classList.add('loading-active');
+            
+            // Store current scroll position
+            this.scrollPosition = window.pageYOffset || document.documentElement.scrollTop;
+            
+            // Prevent any form submissions or button clicks
+            this.disableAllInteractions();
+            
+        } else {
+            // Hide loading overlay
+            loadingOverlay.style.display = 'none';
+            
+            // Re-enable scrolling and interaction
+            body.classList.remove('loading-active');
+            
+            // Restore scroll position
+            if (this.scrollPosition !== undefined) {
+                window.scrollTo(0, this.scrollPosition);
+            }
+            
+            // Re-enable all interactions
+            this.enableAllInteractions();
+        }
+    }
+
+    disableAllInteractions() {
+        // Disable all buttons and form elements
+        const buttons = document.querySelectorAll('button, input[type="submit"], input[type="button"]');
+        const inputs = document.querySelectorAll('input, select, textarea');
+        
+        // Store original states
+        this.disabledElements = [];
+        
+        buttons.forEach(btn => {
+            if (!btn.disabled) {
+                this.disabledElements.push(btn);
+                btn.disabled = true;
+                btn.style.pointerEvents = 'none';
+            }
+        });
+        
+        inputs.forEach(input => {
+            if (!input.disabled) {
+                this.disabledElements.push(input);
+                input.disabled = true;
+                input.style.pointerEvents = 'none';
+            }
+        });
+        
+        // Prevent form submission
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.addEventListener('submit', this.preventSubmission);
+        });
+    }
+    
+    enableAllInteractions() {
+        // Re-enable all previously disabled elements
+        if (this.disabledElements) {
+            this.disabledElements.forEach(element => {
+                element.disabled = false;
+                element.style.pointerEvents = '';
+            });
+            this.disabledElements = [];
+        }
+        
+        // Remove form submission prevention
+        const forms = document.querySelectorAll('form');
+        forms.forEach(form => {
+            form.removeEventListener('submit', this.preventSubmission);
+        });
+    }
+    
+    preventSubmission(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        return false;
     }
 
     scrollToTop() {
@@ -1035,16 +1212,27 @@ class LoanApplicationForm {
     }
 
     redirectToSuccessPage(formData) {
+        console.log('=== REDIRECTING TO SUCCESS PAGE ===');
+        console.log('Form data being passed:', formData);
+        
         // Create URL parameters for the success page
         const params = new URLSearchParams({
-            id: formData.submissionId,
-            name: formData.fullName,
-            nric: formData.nric,
-            model: formData.motorcycleModel,
-            ref: formData.referralCode || '',
-            employment: formData.employmentType,
+            id: formData.submissionId || 'N/A',
+            name: formData.fullName || 'N/A',
+            nric: formData.nric || 'N/A',
+            model: formData.motorcycleModel || 'N/A',
+            ref: formData.referralCode || 'N/A',
+            employment: formData.employmentType || 'N/A',
+            address1: formData.address1 || 'N/A',
+            address2: formData.address2 || 'N/A',
+            postcode: formData.postcode || 'N/A',
+            city: formData.city || 'N/A',
+            state: formData.state || 'N/A',
+            income: formData.monthlyIncome || 'N/A',
             date: new Date().toLocaleDateString('ms-MY')
         });
+        
+        console.log('URL parameters:', params.toString());
         
         // Redirect to success page
         window.location.href = `success.html?${params.toString()}`;

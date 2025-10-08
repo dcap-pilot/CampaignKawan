@@ -28,6 +28,8 @@
                 <p>Sila ambil screenshot halaman ini untuk simpanan anda, atau tekan <span style="font-weight: 600;">"Cetak Halaman"</span> untuk mencetak salinan.</p>
             </div>
             
+           
+            
             <!-- Application Information -->
             <div class="application-info">
                 <h3>Maklumat Permohonan</h3>
@@ -61,6 +63,12 @@
                 motorcycleModel: urlParams.get('model') || 'N/A',
                 referralCode: urlParams.get('ref') || 'N/A',
                 employmentType: urlParams.get('employment') || 'N/A',
+                address1: urlParams.get('address1') || 'N/A',
+                address2: urlParams.get('address2') || 'N/A',
+                postcode: urlParams.get('postcode') || 'N/A',
+                city: urlParams.get('city') || 'N/A',
+                state: urlParams.get('state') || 'N/A',
+                monthlyIncome: urlParams.get('income') || 'N/A',
                 submissionDate: urlParams.get('date') || new Date().toLocaleDateString('ms-MY')
             };
             
@@ -83,10 +91,8 @@
             const details = [
                 { label: 'ID Permohonan', value: data.applicationId },
                 { label: 'Nama', value: data.fullName },
-                { label: 'NRIC', value: data.nric },
                 { label: 'Model Motosikal', value: data.motorcycleModel },
                 { label: 'Kod Rujukan', value: data.referralCode },
-                { label: 'Jenis Pekerjaan', value: data.employmentType },
                 { label: 'Tarikh Permohonan', value: data.submissionDate }
             ];
 

@@ -273,11 +273,17 @@
                         <h4>Dokumen NRIC <span class="badge-wajib">Wajib</span></h4>
                         <div class="upload-item">
                             <label for="nricFront">NRIC Hadapan <span class="required-asterisk">*</span></label>
+                            <div class="nric-illustration">
+                                <img src="nric-front-illustration.png" alt="NRIC Front Example" class="nric-example-image">
+                            </div>
                             <input type="file" id="nricFront" name="nricFront" accept="image/*,.pdf" required>
                             <div class="file-info" id="nricFrontInfo"></div>
                         </div>
                         <div class="upload-item">
                             <label for="nricBack">NRIC Belakang <span class="required-asterisk">*</span></label>
+                            <div class="nric-illustration">
+                                <img src="nric-back-illustration.png" alt="NRIC Back Example" class="nric-example-image">
+                            </div>
                             <input type="file" id="nricBack" name="nricBack" accept="image/*,.pdf" required>
                             <div class="file-info" id="nricBackInfo"></div>
                         </div>
@@ -345,6 +351,9 @@
                                 <label for="incomeDocuments">Pilih Dokumen Pendapatan <span class="required-asterisk">*</span></label>
                                 <input type="file" id="incomeDocuments" name="incomeDocuments" accept="image/*,.pdf" multiple required>
                                 <div class="file-info" id="incomeDocumentsInfo"></div>
+                                <div class="file-actions" id="incomeDocumentsActions" style="display: none;">
+                                    <button type="button" id="clearIncomeDocuments" class="btn-clear">Kosongkan Semua</button>
+                                </div>
                                 <p class="file-help" id="incomeDocumentsHelp">Anda boleh memilih sehingga 10 fail (Gambar dan PDF sahaja)</p>
                             </div>
                         </div>

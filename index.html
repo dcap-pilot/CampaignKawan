@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="theme-color" content="#2D9394">
+    <title>Permohonan Pembiayaan Motosikal - DCAP Digital</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+
+        <!-- Progress Indicator (Hidden for Landing Page) -->
+        <div class="progress-container" id="progressContainer" style="display: none;">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text">
+                <span id="currentStep">1</span> / <span id="totalSteps">6</span>
+            </div>
+        </div>
+
+        <!-- Form Container -->
+        <form id="loanForm" class="form-container">
+            <!-- Step 0: Landing Page -->
+            <div class="form-step active" id="step0">
+                <div class="landing-page">
+                    <div class="landing-hero">
+                        <div class="hero-content">
+                            <div class="brand-section">
+                                <img src="Logo_DCAP_Primary.jpg" alt="DCAP Digital" class="brand-logo">
+                                <p class="powered-by">Dikuasakan oleh DCAP Digital</p>
+                            </div>
+                            
+                            <div class="hero-image">
+                                <img src="motorcycle-display-front-page.png" alt="Motorcycle Financing" class="motorcycle-image">
+                            </div>
+                            
+                            <div class="main-title">
+                                <h2>Pembiayaan Motosikal</h2>
+                                <p class="hero-description">
+                                    Nikmati pengalaman pembiayaan sewa beli motosikal secara digital dengan mudah untuk memiliki motosikal pilihan anda.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="landing-info">
+                        <div class="info-section">
+                            <h3><i class="fas fa-check-circle"></i> Kelayakan</h3>
+                            <ul class="info-list">
+                                <li><i class="fas fa-birthday-cake"></i> Individu berumur antara 18 hingga 60 tahun</li>
+                                <li><i class="fas fa-flag"></i> Warganegara Malaysia</li>
+                                <li><i class="fas fa-money-bill-wave"></i> Pendapatan Kasar minimum RM1,500.00</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-percentage"></i> Terma Pembiayaan</h3>
+                            <ul class="info-list">
+                                <li><i class="fas fa-chart-pie"></i> Margin pembiayaan sehingga 90%</li>
+                                <li><i class="fas fa-calendar-alt"></i> Tempoh pembiayaan sehingga 48 bulan</li>
+                            </ul>
+                        </div>
+
+                        <div class="info-section">
+                            <h3><i class="fas fa-file-alt"></i> Dokumen Diperlukan</h3>
+                            <p class="documents-intro">Sila sediakan dokumen berikut sebelum meneruskan permohonan:</p>
+                            
+                            <!-- Main Document Types -->
+                            <div class="main-documents">
+                                <div class="document-card full-width">
+                                    <i class="fas fa-id-card"></i>
+                                    <span>Kad Pengenalan</span>
+                                </div>
+                                
+                                <div class="document-card full-width clickable" id="incomeDocumentToggle">
+                                    <div class="document-content">
+                                        <i class="fas fa-receipt"></i>
+                                        <span>Dokumen Pendapatan</span>
+                                    </div>
+                                    <i class="fas fa-angle-down accordion-icon"></i>
+                                </div>
+                            </div>
+                            
+                            <!-- Sub-items for Dokumen Pendapatan -->
+                            <div class="sub-documents-container" id="subDocumentsContainer">
+                                <div class="sub-documents">
+                                    <h4 class="sub-section-title">Jenis Dokumen Pendapatan:</h4>
+                                    <div class="employment-types-grid">
+                                        <!-- Pekerja Bergaji -->
+                                        <div class="employment-type-card">
+                                            <div class="employment-header">
+                                                <i class="fas fa-briefcase"></i>
+                                                <div class="header-content">
+                                                    <h5>Pekerja Bergaji</h5>
+                                                </div>
+                                            </div>
+                                            <ul class="document-list">
+                                                <li>Slip Gaji Terkini (1 Bulan)</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Bekerja Sendiri -->
+                                        <div class="employment-type-card">
+                                            <div class="employment-header">
+                                                <i class="fas fa-store"></i>
+                                                <div class="header-content">
+                                                    <h5>Bekerja Sendiri</h5>
+                                                </div>
+                                            </div>
+                                            <ul class="document-list">
+                                                <li>Salinan Pendaftaran Perniagaan (SSM)</li>
+                                                <li>Penyata Bank Perniagaan (3 Bulan Terkini)</li>
+                                            </ul>
+                                        </div>
+                                        
+                                        <!-- Pekerja GIG -->
+                                        <div class="employment-type-card">
+                                            <div class="employment-header">
+                                                <i class="fas fa-motorcycle"></i>
+                                                <div class="header-content">
+                                                    <h5>Pekerja GIG</h5>
+                                                </div>
+                                            </div>
+                                            <div class="gig-example">
+                                                <span class="sub-title">(contohnya: Pemandu E-hailing, Penghantar Makanan / Barangan)</span>
+                                            </div>
+                                            <ul class="document-list">
+                                                <li>Penyata Pendapatan (3 Bulan Terkini)</li>
+                                                <li>Penyata Bank (3 Bulan Terkini)</li>
+                                            </ul>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 1: Motorcycle Information -->
+            <div class="form-step" id="step1">
+                <div class="step-header">
+                    <h2><i class="fas fa-motorcycle"></i> Maklumat Motosikal</h2>
+                    <p>Masukkan kod rujukan dan pilih model motosikal</p>
+                </div>
+                
+                <div class="form-group referral-code-group">
+                    <label for="referralCode">Kod Rujukan <span class="required-asterisk">*</span></label>
+                    <p class="referral-code-description">Masukkan kod rujukan yang dikongsi oleh rakan anda</p>
+                    <input type="text" id="referralCode" name="referralCode" class="referral-code-input" placeholder="ABC123DEF" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="motorcycleModel">Pilih Model Motosikal <span class="required-asterisk">*</span></label>
+                    <select id="motorcycleModel" name="motorcycleModel" required>
+                        <option value="">-- Pilih Model --</option>
+                        <option value="Yamaha Y15ZR">Yamaha Y15ZR</option>
+                        <option value="Honda RS150R">Honda RS150R</option>
+                        <option value="Yamaha LC135">Yamaha LC135</option>
+                        <option value="Honda Dash 125">Honda Dash 125</option>
+                        <option value="Modenas Kriss 110">Modenas Kriss 110</option>
+                        <option value="SYM Sport Rider 125i">SYM Sport Rider 125i</option>
+                        <option value="WMoto Vega 200">WMoto Vega 200</option>
+                        <option value="Benelli RFS150i">Benelli RFS150i</option>
+                        <option value="Yamaha MT-15">Yamaha MT-15</option>
+                        <option value="Honda ADV160">Honda ADV160</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Step 2: Applicant Information -->
+            <div class="form-step" id="step2">
+                <div class="step-header">
+                    <h2><i class="fas fa-user"></i> Maklumat Pemohon</h2>
+                    <p>Maklumat peribadi pemohon</p>
+                </div>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="fullName">Nama Penuh <span class="required-asterisk">*</span></label>
+                        <input type="text" id="fullName" name="fullName" placeholder="e.g. Ali Bin Abu" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="nric">No. Kad Pengenalan (NRIC) <span class="required-asterisk">*</span></label>
+                        <input type="text" id="nric" name="nric" placeholder="e.g. 123456-88-1234" maxlength="14" pattern="[0-9]{6}-[0-9]{2}-[0-9]{4}" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="phone">No. Telefon Bimbit <span class="required-asterisk">*</span></label>
+                        <div class="phone-input-container">
+                            <span class="phone-prefix">+6</span>
+                            <input type="tel" id="phone" name="phone" placeholder="01XXXXXXXX" pattern="^\+6[0-9]{9,11}$" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">Alamat Emel <span class="required-asterisk">*</span></label>
+                        <input type="email" id="email" name="email" placeholder="e.g. ali@example.com" required>
+                    </div>
+                </div>
+
+
+                <div class="form-group">
+                    <label for="address1">Alamat Barisan 1 <span class="required-asterisk">*</span></label>
+                    <input type="text" id="address1" name="address1" maxlength="40" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="address2">Alamat Barisan 2 <span class="required-asterisk">*</span></label>
+                    <input type="text" id="address2" name="address2" maxlength="40" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="postcode">Poskod <span class="required-asterisk">*</span></label>
+                    <input type="text" id="postcode" name="postcode" pattern="[0-9]{5}" maxlength="5" required>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="city">Bandar <span class="required-asterisk">*</span></label>
+                        <input type="text" id="city" name="city" placeholder="e.g. Kuala Lumpur" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="state">Negeri <span class="required-asterisk">*</span></label>
+                        <select id="state" name="state" required>
+                            <option value="">-- Pilih Negeri --</option>
+                            <option value="Johor">Johor</option>
+                            <option value="Kedah">Kedah</option>
+                            <option value="Kelantan">Kelantan</option>
+                            <option value="Kuala Lumpur">Kuala Lumpur</option>
+                            <option value="Labuan">Labuan</option>
+                            <option value="Melaka">Melaka</option>
+                            <option value="Negeri Sembilan">Negeri Sembilan</option>
+                            <option value="Pahang">Pahang</option>
+                            <option value="Pulau Pinang">Pulau Pinang</option>
+                            <option value="Perak">Perak</option>
+                            <option value="Perlis">Perlis</option>
+                            <option value="Putrajaya">Putrajaya</option>
+                            <option value="Sabah">Sabah</option>
+                            <option value="Sarawak">Sarawak</option>
+                            <option value="Selangor">Selangor</option>
+                            <option value="Terengganu">Terengganu</option>
+                        </select>
+                    </div>
+                </div>
+
+                <hr>
+
+                <div class="form-group">
+                    <label for="monthlyIncome">Pendapatan Bulanan Kasar <span class="required-asterisk">*</span></label>
+                    <input type="number" id="monthlyIncome" name="monthlyIncome" placeholder="e.g. 1500" min="0" step="100" required>
+                </div>
+            </div>
+
+            <!-- Step 3: NRIC Upload -->
+            <div class="form-step" id="step3">
+                <div class="step-header">
+                    <h2><i class="fas fa-id-card"></i> Muat Naik Dokumen NRIC</h2>
+                    <p>Muat naik dokumen NRIC hadapan dan belakang</p>
+                </div>
+                
+                <!-- Document Upload Section -->
+                <div class="document-upload-section">
+                    <div class="upload-group">
+                        <h4>Dokumen NRIC <span class="badge-wajib">Wajib</span></h4>
+                        <div class="upload-item">
+                            <label for="nricFront">NRIC Hadapan <span class="required-asterisk">*</span></label>
+                            <input type="file" id="nricFront" name="nricFront" accept="image/*,.pdf" required>
+                            <div class="file-info" id="nricFrontInfo"></div>
+                        </div>
+                        <div class="upload-item">
+                            <label for="nricBack">NRIC Belakang <span class="required-asterisk">*</span></label>
+                            <input type="file" id="nricBack" name="nricBack" accept="image/*,.pdf" required>
+                            <div class="file-info" id="nricBackInfo"></div>
+                        </div>
+                    </div>
+                </div>
+                </div>
+                
+            <!-- Step 4: Employment Information & Income Documents -->
+            <div class="form-step" id="step4">
+                <div class="step-header">
+                    <h2><i class="fas fa-briefcase"></i> Maklumat Pekerjaan & Dokumen Pendapatan</h2>
+                    <p>Pilih jenis pekerjaan anda dan muat naik dokumen pendapatan</p>
+                </div>
+
+                <div class="form-group">
+                    <label>Jenis Pekerjaan <span class="required-asterisk">*</span></label>
+                    <div class="employment-selection-cards">
+                        <div class="employment-card" data-value="Pekerja Bergaji">
+                            <div class="card-icon">
+                                <i class="fas fa-briefcase"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4>Pekerja Bergaji</h4>
+                                <p>Pekerja tetap dengan gaji bulanan</p>
+                            </div>
+                        </div>
+                        
+                        <div class="employment-card" data-value="Bekerja Sendiri">
+                            <div class="card-icon">
+                                <i class="fas fa-store"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4>Bekerja Sendiri</h4>
+                                <p>Pemilik perniagaan atau freelancer</p>
+                            </div>
+                        </div>
+                        
+                        <div class="employment-card" data-value="Pekerja GIG">
+                            <div class="card-icon">
+                                <i class="fas fa-motorcycle"></i>
+                            </div>
+                            <div class="card-content">
+                                <h4>Pekerja GIG</h4>
+                                <p>Pemandu e-hailing, penghantar makanan</p>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="employmentType" name="employmentType" required>
+                </div>
+
+                <!-- Document Requirements Section -->
+                <div id="documentRequirements" class="document-requirements-section" style="display: none;">
+                    <h3>📄 Dokumen Diperlukan</h3>
+                    <div id="documentRequirementsContent">
+                        <!-- Content will be populated dynamically based on employment type -->
+                    </div>
+                </div>
+
+                <!-- Income Documents Upload Section (Hidden by default) -->
+                <div class="document-upload-section" id="incomeDocumentsSection" style="display: none;">
+                    <div class="upload-group" id="incomeDocumentsGroup">
+                        
+                        <div class="income-documents">
+                            <div class="upload-item">
+                                <label for="incomeDocuments">Pilih Dokumen Pendapatan <span class="required-asterisk">*</span></label>
+                                <input type="file" id="incomeDocuments" name="incomeDocuments" accept="image/*,.pdf" multiple required>
+                                <div class="file-info" id="incomeDocumentsInfo"></div>
+                                <p class="file-help" id="incomeDocumentsHelp">Anda boleh memilih sehingga 10 fail (Gambar dan PDF sahaja)</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 5: Confirmation -->
+            <div class="form-step" id="step5">
+                <div class="step-header">
+                    <h2><i class="fas fa-check-circle"></i> Pengesahan Permohonan</h2>
+                    <p>Semak maklumat anda sebelum menghantar</p>
+                </div>
+                
+                <div class="confirmation-section">
+                    <h3><i class="fas fa-file-alt"></i> Ringkasan Permohonan</h3>
+                    <div id="applicationSummary">
+                        <!-- Application summary will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+            <!-- Step 6: CCRIS Consent -->
+            <div class="form-step" id="step6">
+                <div class="step-header">
+                    <h2><i class="fas fa-shield-alt"></i> E-Kebenaran Semakan Kredit</h2>
+                    <p>Sila baca dan berikan kebenaran anda</p>
+                </div>
+
+                <div class="consent-section">
+                    <div class="consent-text">
+                        <p>Anda sedang memohon pembiayaan untuk pembelian motosikal. Selaras dengan Akta Agensi Pelaporan Kredit 2010 dan semua undang-undang serta peraturan, kami memerlukan kebenaran anda untuk semak laporan kredit / CCRIS.</p>
+                        
+                        <p>Kebenaran ini diperlukan untuk menilai dan memproses permohonan pembiayaan anda.</p>
+                        
+                        <h4>Produk Pembiayaan Motosikal</h4>
+                        
+                        <p>Dengan memberikan kebenaran ini, saya dengan ini bersetuju dan memberi kebenaran kepada DCAP Commercial Sdn Bhd / Experian / CTOS / pegawai yang diberi kuasa / mana-mana pihak ketiga yang dilantik oleh kami DCAP Commercial Sdn. Bhd. dan / atau mana-mana agensi pelaporan kredit lain yang berdaftar di bawah Akta Agensi Pelaporan Kredit 2010 (CRA Act 2010) untuk memproses maklumat saya bagi tujuan menilai permohonan pembiayaan ini.</p>
+                    </div>
+                    
+                    <div class="consent-checkbox">
+                        <input type="checkbox" id="ccrisConsent" name="ccrisConsent" required>
+                        <label for="ccrisConsent">Saya bersetuju dengan syarat-syarat di atas <span class="required-asterisk">*</span></label>
+                    </div>
+                    </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="form-navigation">
+                <button type="button" id="prevBtn" class="btn btn-secondary" style="display: none;">
+                    <i class="fas fa-arrow-left"></i> 
+                </button>
+                <button type="button" id="nextBtn" class="btn btn-primary">
+                    Seterusnya <i class="fas fa-arrow-right"></i>
+                </button>
+                <button type="submit" id="submitBtn" class="btn btn-primary" style="display: none;">
+                    <i class="fas fa-paper-plane"></i> Hantar Permohonan
+                </button>
+            </div>
+        </form>
+
+        <!-- Loading Overlay -->
+        <div id="loadingOverlay" class="loading-overlay" style="display: none;">
+            <div class="loading-spinner">
+                <i class="fas fa-spinner fa-spin"></i>
+                <p>Memproses permohonan anda...</p>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>

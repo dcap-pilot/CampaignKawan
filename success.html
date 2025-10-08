@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Permohonan Berjaya - Campaign Kawan</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="success-page-container">
+        <div class="success-content">
+            <!-- Success Icon -->
+            <div class="success-icon">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            
+            <!-- Main Heading -->
+            <h1>Permohonan Berjaya Dihantar!</h1>
+            <p class="success-description">Terima kasih kerana memohon pembiayaan motosikal dengan kami. Permohonan anda telah diterima dan akan diproses dalam masa <span style="font-weight: 600;">3-5 hari bekerja.</span></p>
+            
+            <!-- Important Screenshot Note -->
+            <div class="important-note">
+                <h3><i class="fas fa-camera"></i> Penting: Ambil Screenshot</h3>
+                <p>Sila ambil screenshot halaman ini untuk simpanan anda, atau tekan <span style="font-weight: 600;">"Cetak Halaman"</span> untuk mencetak salinan.</p>
+            </div>
+            
+            <!-- Application Information -->
+            <div class="application-info">
+                <h3>Maklumat Permohonan</h3>
+                <div class="info-grid" id="applicationDetails">
+                    <!-- Application details will be populated by JavaScript -->
+                </div>
+            </div>
+            
+            <!-- Action Buttons -->
+            <div class="success-actions">
+                <button onclick="window.print()" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Cetak Halaman
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Parse URL parameters to get application data
+        function getApplicationData() {
+            const urlParams = new URLSearchParams(window.location.search);
+            return {
+                applicationId: urlParams.get('id') || 'N/A',
+                fullName: urlParams.get('name') || 'N/A',
+                nric: urlParams.get('nric') || 'N/A',
+                motorcycleModel: urlParams.get('model') || 'N/A',
+                referralCode: urlParams.get('ref') || 'N/A',
+                employmentType: urlParams.get('employment') || 'N/A',
+                submissionDate: urlParams.get('date') || new Date().toLocaleDateString('ms-MY')
+            };
+        }
+
+        // Populate application details
+        function populateApplicationDetails() {
+            const data = getApplicationData();
+            const detailsContainer = document.getElementById('applicationDetails');
+            
+            const details = [
+                { label: 'ID Permohonan', value: data.applicationId },
+                { label: 'Nama', value: data.fullName },
+                { label: 'NRIC', value: data.nric },
+                { label: 'Model Motosikal', value: data.motorcycleModel },
+                { label: 'Kod Rujukan', value: data.referralCode },
+                { label: 'Jenis Pekerjaan', value: data.employmentType },
+                { label: 'Tarikh Permohonan', value: data.submissionDate }
+            ];
+
+            detailsContainer.innerHTML = details.map(detail => `
+                <div class="info-item">
+                    <span class="info-label">${detail.label}:</span>
+                    <span class="info-value">${detail.value}</span>
+                </div>
+            `).join('');
+        }
+
+        // Initialize the page
+        document.addEventListener('DOMContentLoaded', function() {
+            populateApplicationDetails();
+        });
+    </script>
+</body>
+</html>

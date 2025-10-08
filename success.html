@@ -48,8 +48,13 @@
     <script>
         // Parse URL parameters to get application data
         function getApplicationData() {
+            console.log('=== SUCCESS PAGE LOADED ===');
+            console.log('Full URL:', window.location.href);
+            
             const urlParams = new URLSearchParams(window.location.search);
-            return {
+            console.log('URL Parameters:', Array.from(urlParams.entries()));
+            
+            const data = {
                 applicationId: urlParams.get('id') || 'N/A',
                 fullName: urlParams.get('name') || 'N/A',
                 nric: urlParams.get('nric') || 'N/A',
@@ -58,12 +63,22 @@
                 employmentType: urlParams.get('employment') || 'N/A',
                 submissionDate: urlParams.get('date') || new Date().toLocaleDateString('ms-MY')
             };
+            
+            console.log('Parsed application data:', data);
+            return data;
         }
 
         // Populate application details
         function populateApplicationDetails() {
+            console.log('Populating application details...');
+            
             const data = getApplicationData();
             const detailsContainer = document.getElementById('applicationDetails');
+            
+            if (!detailsContainer) {
+                console.error('Details container not found!');
+                return;
+            }
             
             const details = [
                 { label: 'ID Permohonan', value: data.applicationId },
@@ -75,16 +90,21 @@
                 { label: 'Tarikh Permohonan', value: data.submissionDate }
             ];
 
-            detailsContainer.innerHTML = details.map(detail => `
+            const html = details.map(detail => `
                 <div class="info-item">
                     <span class="info-label">${detail.label}:</span>
                     <span class="info-value">${detail.value}</span>
                 </div>
             `).join('');
+            
+            console.log('Generated HTML length:', html.length);
+            detailsContainer.innerHTML = html;
+            console.log('✓ Details populated successfully');
         }
 
         // Initialize the page
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('DOM Content Loaded');
             populateApplicationDetails();
         });
     </script>

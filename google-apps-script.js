@@ -8,111 +8,212 @@ const DRIVE_FOLDER_ID = '1a89zTsFsUXNA2EfI-2oUV9y0vELSJ5zN';
 // Main function to handle form submission (POST)
 function doPost(e) {
   try {
+    Logger.log('=== POST REQUEST RECEIVED ===');
+    Logger.log('Content Type: ' + e.postData.type);
+    Logger.log('Content Length: ' + e.postData.length);
+    
     const data = JSON.parse(e.postData.contents);
-    return processFormData(data);
+    Logger.log('Parsed data successfully');
+    Logger.log('Data keys: ' + Object.keys(data).join(', '));
+    
+    const result = processFormData(data);
+    Logger.log('Processing completed successfully');
+    
+    return result;
+    
   } catch (error) {
-    console.error('Error processing POST request:', error);
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString()
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    Logger.log('ERROR in doPost: ' + error.toString());
+    Logger.log('Error stack: ' + error.stack);
+    
+    return createJsonResponse({
+      success: false,
+      error: error.toString(),
+      message: 'Failed to process POST request'
+    });
   }
 }
 
 // Handle GET requests (for CORS workaround)
 function doGet(e) {
   try {
-    console.log('GET request received');
-    console.log('Parameters:', e.parameter);
+    Logger.log('=== GET REQUEST RECEIVED ===');
+    Logger.log('Number of parameters: ' + Object.keys(e.parameter || {}).length);
+    Logger.log('Parameters: ' + JSON.stringify(e.parameter));
     
-    if (!e.parameter || !e.parameter.data) {
-      console.log('No data parameter found');
-      return ContentService
-        .createTextOutput(JSON.stringify({
+    // Check if this is a lookup request
+    if (e.parameter && e.parameter.check) {
+      Logger.log('=== LOOKUP REQUEST ===');
+      const nric = e.parameter.check;
+      Logger.log('Looking up Application ID for NRIC: ' + nric);
+      
+      const applicationId = findApplicationIdByNric(nric);
+      if (applicationId) {
+        Logger.log('Found Application ID: ' + applicationId);
+        return createJsonResponse({
+          success: true,
+          applicationId: applicationId,
+          message: 'Application ID found'
+        });
+      } else {
+        Logger.log('No Application ID found for NRIC: ' + nric);
+        return createJsonResponse({
           success: false,
-          error: 'No data parameter provided'
-        }))
-        .setMimeType(ContentService.MimeType.JSON);
+          error: 'Application not found',
+          message: 'No application found with this NRIC'
+        });
+      }
+    }
+    
+    // Regular data submission
+    if (!e.parameter || !e.parameter.data) {
+      Logger.log('No data parameter found');
+      return createJsonResponse({
+        success: false,
+        error: 'No data parameter provided',
+        message: 'Please provide data parameter'
+      });
     }
     
     const dataString = decodeURIComponent(e.parameter.data);
-    console.log('Decoded data string length:', dataString.length);
+    Logger.log('Decoded data string length: ' + dataString.length);
+    Logger.log('Data preview (first 200 chars): ' + dataString.substring(0, 200));
     
     const data = JSON.parse(dataString);
-    console.log('Parsed data keys:', Object.keys(data));
+    Logger.log('Parsed data keys: ' + Object.keys(data).join(', '));
     
-    return processFormData(data);
+    // Log key data for debugging
+    if (data.fullName) Logger.log('Full Name: ' + data.fullName);
+    if (data.nric) Logger.log('NRIC: ' + data.nric);
+    if (data.files) Logger.log('Files count: ' + data.files.length);
+    
+    const result = processFormData(data);
+    Logger.log('Processing completed successfully');
+    
+    return result;
     
   } catch (error) {
-    console.error('Error processing GET request:', error);
-    console.error('Error details:', error.toString());
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString(),
-        details: 'Failed to process GET request'
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    Logger.log('ERROR in doGet: ' + error.toString());
+    Logger.log('Error stack: ' + error.stack);
+    
+    return createJsonResponse({
+      success: false,
+      error: error.toString(),
+      message: 'Failed to process GET request'
+    });
+  }
+}
+
+// Create JSON response with CORS headers
+function createJsonResponse(data) {
+  return ContentService
+    .createTextOutput(JSON.stringify(data))
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Handle CORS preflight requests (OPTIONS)
+function doOptions(e) {
+  Logger.log('=== OPTIONS REQUEST RECEIVED (CORS Preflight) ===');
+  return ContentService
+    .createTextOutput('')
+    .setMimeType(ContentService.MimeType.JSON);
+}
+
+// Find Application ID by NRIC
+function findApplicationIdByNric(nric) {
+  try {
+    Logger.log('Searching for Application ID with NRIC: ' + nric);
+    
+    const sheet = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
+    const lastRow = sheet.getLastRow();
+    
+    if (lastRow <= 1) {
+      Logger.log('No data in sheet');
+      return null;
+    }
+    
+    // Get all data
+    const data = sheet.getRange(1, 1, lastRow, sheet.getLastColumn()).getValues();
+    const headers = data[0];
+    
+    // Find NRIC column index
+    const nricIndex = headers.indexOf('NRIC');
+    const appIdIndex = headers.indexOf('Application ID');
+    
+    if (nricIndex === -1 || appIdIndex === -1) {
+      Logger.log('NRIC or Application ID column not found');
+      return null;
+    }
+    
+    // Search for the NRIC
+    for (let i = 1; i < data.length; i++) {
+      if (data[i][nricIndex] === nric) {
+        const applicationId = data[i][appIdIndex];
+        Logger.log('Found matching NRIC, Application ID: ' + applicationId);
+        return applicationId;
+      }
+    }
+    
+    Logger.log('NRIC not found in sheet');
+    return null;
+    
+  } catch (error) {
+    Logger.log('ERROR in findApplicationIdByNric: ' + error.toString());
+    return null;
   }
 }
 
 // Process form data (shared function)
 function processFormData(data) {
   try {
-    console.log('Processing form data...');
-    console.log('Data received:', typeof data, Object.keys(data || {}));
+    Logger.log('=== PROCESSING FORM DATA ===');
+    
+    // Validate data
+    if (!data) {
+      throw new Error('No data provided');
+    }
     
     // Generate unique application ID
     const applicationId = generateApplicationId();
-    console.log('Generated application ID:', applicationId);
+    Logger.log('Generated Application ID: ' + applicationId);
     
     // Save form data to Google Sheets
-    console.log('Saving to sheets...');
+    Logger.log('Saving to Google Sheets...');
     saveToSheets(data, applicationId);
-    console.log('Successfully saved to sheets');
+    Logger.log('✓ Successfully saved to sheets');
     
     // Handle file uploads if any
     let uploadedFiles = [];
-    if (data.files && data.files.length > 0) {
-      console.log('Processing file uploads:', data.files.length, 'files');
+    if (data.files && Array.isArray(data.files) && data.files.length > 0) {
+      Logger.log('Processing ' + data.files.length + ' file(s)...');
       uploadedFiles = handleFileUploads(data.files, applicationId);
-      console.log('File uploads completed:', uploadedFiles.length, 'files uploaded');
+      Logger.log('✓ Successfully uploaded ' + uploadedFiles.length + ' file(s)');
     } else {
-      console.log('No files to upload');
+      Logger.log('No files to upload');
     }
     
-    console.log('Form processing completed successfully');
+    Logger.log('=== FORM PROCESSING COMPLETED ===');
     
     // Return success response
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: true,
-        applicationId: applicationId,
-        message: 'Application submitted successfully',
-        uploadedFiles: uploadedFiles
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    return createJsonResponse({
+      success: true,
+      applicationId: applicationId,
+      message: 'Application submitted successfully',
+      uploadedFiles: uploadedFiles,
+      timestamp: new Date().toISOString()
+    });
       
-  } catch (error) {
-    console.error('Error processing form data:', error);
-    console.error('Error stack:', error.stack);
-    return ContentService
-      .createTextOutput(JSON.stringify({
-        success: false,
-        error: error.toString(),
-        stack: error.stack
-      }))
-      .setMimeType(ContentService.MimeType.JSON);
+    } catch (error) {
+    Logger.log('=== ERROR PROCESSING FORM ===');
+    Logger.log('Error: ' + error.toString());
+    Logger.log('Stack: ' + error.stack);
+    
+    return createJsonResponse({
+      success: false,
+      error: error.toString(),
+      stack: error.stack,
+      message: 'Failed to process form data'
+    });
   }
-}
-
-// Handle CORS preflight requests
-function doOptions(e) {
-  return ContentService
-    .createTextOutput('')
-    .setMimeType(ContentService.MimeType.JSON);
 }
 
 // Generate unique application ID
@@ -124,62 +225,90 @@ function generateApplicationId() {
 
 // Save form data to Google Sheets
 function saveToSheets(data, applicationId) {
-  const sheet = SpreadsheetApp.openById(SHEET_ID).getActiveSheet();
-  
-  // Get headers (first row)
-  const headers = sheet.getRange(1, 1, 1, sheet.getLastColumn()).getValues()[0];
-  
-  // If headers don't exist, create them
-  if (headers.length === 0 || headers[0] === '') {
-    const headerRow = [
-      'Application ID',
-      'Submission Date',
-      'Referral Code',
-      'Motorcycle Model',
-      'Full Name',
-      'NRIC',
-      'Phone',
-      'Email',
-      'Address Line 1',
-      'Address Line 2',
-      'Postcode',
-      'City',
-      'State',
-      'Monthly Income',
-      'Employment Type',
-      'NRIC Front Uploaded',
-      'NRIC Back Uploaded',
-      'Income Documents Count',
-      'File Upload Status'
+  try {
+    Logger.log('Opening spreadsheet: ' + SHEET_ID);
+    const spreadsheet = SpreadsheetApp.openById(SHEET_ID);
+    let sheet = spreadsheet.getActiveSheet();
+    
+    Logger.log('Sheet name: ' + sheet.getName());
+    Logger.log('Current row count: ' + sheet.getLastRow());
+    
+    // Get headers (first row)
+    const lastColumn = sheet.getLastColumn();
+    Logger.log('Last column: ' + lastColumn);
+    
+    let headers = [];
+    if (lastColumn > 0) {
+      headers = sheet.getRange(1, 1, 1, lastColumn).getValues()[0];
+    }
+    
+    // If headers don't exist, create them
+    if (headers.length === 0 || headers[0] === '' || headers[0] === null) {
+      Logger.log('Creating headers...');
+      const headerRow = [
+        'Application ID',
+        'Submission Date',
+        'Referral Code',
+        'Motorcycle Model',
+        'Full Name',
+        'NRIC',
+        'Phone',
+        'Email',
+        'Address Line 1',
+        'Address Line 2',
+        'Postcode',
+        'City',
+        'State',
+        'Monthly Income',
+        'Employment Type',
+        'NRIC Front Uploaded',
+        'NRIC Back Uploaded',
+        'Income Documents Count',
+        'Total Files Uploaded'
+      ];
+      sheet.getRange(1, 1, 1, headerRow.length).setValues([headerRow]);
+      Logger.log('✓ Headers created');
+    } else {
+      Logger.log('Headers already exist');
+    }
+    
+    // Prepare data row
+    const rowData = [
+      applicationId,
+      new Date(),
+      data.referralCode || '',
+      data.motorcycleModel || '',
+      data.fullName || '',
+      data.nric || '',
+      data.phone || '',
+      data.email || '',
+      data.address1 || '',
+      data.address2 || '',
+      data.postcode || '',
+      data.city || '',
+      data.state || '',
+      data.monthlyIncome || '',
+      data.employmentType || '',
+      data.nricFrontUploaded ? 'Yes' : 'No',
+      data.nricBackUploaded ? 'Yes' : 'No',
+      data.incomeDocumentsCount || 0,
+      (data.files && data.files.length) || 0
     ];
-    sheet.getRange(1, 1, 1, headerRow.length).setValues([headerRow]);
+    
+    Logger.log('Appending row with ' + rowData.length + ' columns');
+    Logger.log('Application ID: ' + applicationId);
+    Logger.log('Full Name: ' + data.fullName);
+    Logger.log('NRIC: ' + data.nric);
+    
+    // Add data to sheet
+    sheet.appendRow(rowData);
+    
+    Logger.log('✓ Row added at position: ' + sheet.getLastRow());
+    
+  } catch (error) {
+    Logger.log('ERROR in saveToSheets: ' + error.toString());
+    throw error;
   }
-  
-  // Prepare data row
-  const rowData = [
-    applicationId,
-    new Date(),
-    data.referralCode || '',
-    data.motorcycleModel || '',
-    data.fullName || '',
-    data.nric || '',
-    data.phone || '',
-    data.email || '',
-    data.address1 || '',
-    data.address2 || '',
-    data.postcode || '',
-    data.city || '',
-    data.state || '',
-    data.monthlyIncome || '',
-    data.employmentType || '',
-    data.nricFrontUploaded || false,
-    data.nricBackUploaded || false,
-    data.incomeDocumentsCount || 0,
-    data.files ? data.files.length > 0 : false
-  ];
-  
-  // Add data to sheet
-  sheet.appendRow(rowData);
 }
 
 // Handle file uploads to Google Drive
@@ -187,36 +316,56 @@ function handleFileUploads(files, applicationId) {
   const uploadedFiles = [];
   
   try {
-    // Create folder for this application
+    Logger.log('Opening Drive folder: ' + DRIVE_FOLDER_ID);
     const parentFolder = DriveApp.getFolderById(DRIVE_FOLDER_ID);
-    const appFolder = parentFolder.createFolder(applicationId);
+    Logger.log('Parent folder name: ' + parentFolder.getName());
     
-    files.forEach(file => {
+    Logger.log('Creating subfolder: ' + applicationId);
+    const appFolder = parentFolder.createFolder(applicationId);
+    Logger.log('✓ Subfolder created');
+    
+    Logger.log('Processing ' + files.length + ' file(s)...');
+    
+    files.forEach(function(file, index) {
       try {
+        Logger.log('Processing file ' + (index + 1) + ': ' + file.name);
+        Logger.log('File type: ' + file.mimeType);
+        Logger.log('File size: ' + file.size + ' bytes');
+        Logger.log('Field name: ' + file.fieldName);
+        
         // Convert base64 to blob
         const fileBlob = Utilities.newBlob(
-          Utilities.base64Decode(file.data), 
-          file.mimeType, 
+          Utilities.base64Decode(file.data),
+          file.mimeType,
           file.name
         );
         
+        Logger.log('✓ File blob created');
+        
         // Upload to Drive
         const driveFile = appFolder.createFile(fileBlob);
+        Logger.log('✓ File uploaded to Drive');
+        Logger.log('Drive file ID: ' + driveFile.getId());
         
         uploadedFiles.push({
           name: file.name,
           driveId: driveFile.getId(),
           driveUrl: driveFile.getUrl(),
-          size: file.size
+          size: file.size,
+          fieldName: file.fieldName
         });
         
       } catch (fileError) {
-        console.error(`Error uploading file ${file.name}:`, fileError);
+        Logger.log('ERROR uploading file ' + file.name + ': ' + fileError.toString());
+        // Continue with other files even if one fails
       }
     });
     
+    Logger.log('✓ File upload completed. Total uploaded: ' + uploadedFiles.length);
+    
   } catch (folderError) {
-    console.error('Error creating application folder:', folderError);
+    Logger.log('ERROR creating folder: ' + folderError.toString());
+    throw folderError;
   }
   
   return uploadedFiles;

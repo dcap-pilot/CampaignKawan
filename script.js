@@ -695,61 +695,128 @@ class LoanApplicationForm {
         });
     }
 
-        async submitToGoogleSheets(data) {
+    async submitToGoogleSheets(data) {
             // Replace with your Google Apps Script Web App URL
             const scriptUrl = 'https://script.google.com/macros/s/AKfycby8nwdknK9tnMpqlKhvpTw9IJif1UIsQo73Zq1CEvB1J8I9rJUikGEyCrNrWTSXnUhV/exec';
             
+            console.log('=== SUBMITTING TO GOOGLE SHEETS ===');
+            console.log('Script URL:', scriptUrl);
+            console.log('Data to submit:', {
+                referralCode: data.referralCode,
+                motorcycleModel: data.motorcycleModel,
+                fullName: data.fullName,
+                nric: data.nric,
+                phone: data.phone,
+                email: data.email,
+                address1: data.address1,
+                address2: data.address2,
+                postcode: data.postcode,
+                city: data.city,
+                state: data.state,
+                monthlyIncome: data.monthlyIncome,
+                employmentType: data.employmentType,
+                filesCount: data.files ? data.files.length : 0
+            });
+            
             try {
-                // Try POST first (original method)
-                console.log('Attempting POST request to Google Apps Script...');
-                console.log('Data being sent:', data);
+                // Try POST request with proper CORS handling
+                console.log('Attempting POST request...');
                 
                 const response = await fetch(scriptUrl, {
                     method: 'POST',
+                    mode: 'cors',
+                    cache: 'no-cache',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify(data)
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response ok:', response.ok);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                
                 const result = await response.json();
-                console.log('Response from Google Apps Script:', result);
+                console.log('Response data:', result);
                 
                 if (!result.success) {
+                    console.error('Server returned error:', result.error);
                     throw new Error(result.error || 'Failed to submit to Google Sheets');
                 }
                 
-                console.log('Successfully submitted to Google Sheets:', result);
+                console.log('✓ Successfully submitted to Google Sheets!');
+                console.log('Application ID:', result.applicationId);
+                
                 return result;
                 
             } catch (error) {
-                console.error('POST request failed, trying GET method:', error);
+                console.error('=== SUBMISSION ERROR ===');
+                console.error('Error type:', error.name);
+                console.error('Error message:', error.message);
+                console.error('Error stack:', error.stack);
                 
-                // Fallback to GET method if POST fails
+                // Fallback: Try POST with no-cors mode
                 try {
-                    const getUrl = scriptUrl + '?data=' + encodeURIComponent(JSON.stringify(data));
-                    console.log('Attempting GET request:', getUrl.substring(0, 100) + '...');
+                    console.log('Attempting POST with no-cors fallback...');
                     
-                    const getResponse = await fetch(getUrl, {
-                        method: 'GET',
-                        mode: 'no-cors'
+                    const response = await fetch(scriptUrl, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        cache: 'no-cache',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify(data)
                     });
                     
-                    console.log('GET request completed');
+                    console.log('POST fallback completed');
+                    
+                    // Since we can't read the response in no-cors mode,
+                    // we need to check if the data was actually saved
+                    // Wait a moment for the backend to process
+                    await new Promise(resolve => setTimeout(resolve, 2000));
+                    
+                    // Try to get the application ID from the backend
+                    try {
+                        const checkUrl = scriptUrl + '?check=' + encodeURIComponent(data.nric);
+                        const checkResponse = await fetch(checkUrl, {
+                            method: 'GET',
+                            mode: 'cors'
+                        });
+                        
+                        if (checkResponse.ok) {
+                            const checkResult = await checkResponse.json();
+                            if (checkResult.success && checkResult.applicationId) {
+                                console.log('Retrieved Application ID from backend:', checkResult.applicationId);
+                                return {
+                                    success: true,
+                                    applicationId: checkResult.applicationId,
+                                    message: 'Application submitted successfully',
+                                    fallback: true
+                                };
+                            }
+                        }
+                    } catch (checkError) {
+                        console.log('Could not retrieve Application ID from backend:', checkError);
+                    }
+                    
+                    // If we can't get the backend ID, generate a local one
+                    const localApplicationId = 'APP-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase();
+                    console.log('Using local Application ID:', localApplicationId);
+                    
                     return {
                         success: true,
-                        applicationId: 'APP-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        message: 'Application submitted successfully'
+                        applicationId: localApplicationId,
+                        message: 'Application submitted (fallback mode - check Google Sheet for actual ID)',
+                        fallback: true
                     };
                     
-                } catch (getError) {
-                    console.error('Both POST and GET methods failed:', getError);
-                    // Return success anyway to show user success page
-                    return {
-                        success: true,
-                        applicationId: 'APP-' + Date.now() + '-' + Math.random().toString(36).substring(2, 8).toUpperCase(),
-                        message: 'Application submitted successfully'
-                    };
+                } catch (fallbackError) {
+                    console.error('Both GET and POST failed:', fallbackError);
+                    throw new Error('Failed to submit application. Please check your internet connection and try again.');
                 }
             }
         }
@@ -929,8 +996,8 @@ class LoanApplicationForm {
             
             <div class="summary-section">
                 <h4><i class="fas fa-user"></i> Maklumat Pemohon</h4>
-                <p><strong>Nama:</strong> ${formData.fullName}</p>
-                <p><strong>NRIC:</strong> ${formData.nric}</p>
+            <p><strong>Nama:</strong> ${formData.fullName}</p>
+            <p><strong>NRIC:</strong> ${formData.nric}</p>
                 <p><strong>Telefon:</strong> ${formData.phone}</p>
                 <p><strong>Emel:</strong> ${formData.email}</p>
                 <p><strong>Alamat:</strong> ${formData.address1}, ${formData.address2}, ${formData.postcode} ${formData.city}, ${formData.state}</p>
